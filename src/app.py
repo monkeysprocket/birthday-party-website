@@ -1,6 +1,7 @@
 from flask import Flask, render_template, abort, request, redirect, url_for
 import sqlite3
 from uuid import UUID
+from admin import requires_auth
 
 app = Flask(__name__)
 
@@ -45,3 +46,14 @@ def rsvp():
     conn.close()
 
     return redirect(url_for('invite', uuid=uuid, rsvp="thanks"))
+
+
+@app.route("/admin")
+@requires_auth
+def admin():
+    conn = sqlite3.connect('guests.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT name, email, rsvp_status, rsvp_message FROM guests ORDER BY name")
+    guests = cursor.fetchall()
+    conn.close()
+    return render_template('admin.html', guests=guests)

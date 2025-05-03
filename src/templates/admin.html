@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>RSVP Admin</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+</head>
+<body class="section">
+    <div class="container">
+        <h1 class="title">Guest RSVP Overview</h1>
+        <table class="table is-striped is-fullwidth">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                    <th>Message</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for name, email, status, message in guests %}
+                <tr>
+                    <td>{{ name }}</td>
+                    <td>{{ email }}</td>
+                    <td>
+                        {% if status == "yes" %}
+                            <span class="tag is-success">Yes</span>
+                        {% elif status == "no" %}
+                            <span class="tag is-danger">No</span>
+                        {% else %}
+                            <span class="tag is-light">No response</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ message or "—" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

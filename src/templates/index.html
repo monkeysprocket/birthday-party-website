@@ -2,66 +2,97 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Birthday Party Invitation</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
 </head>
 <body>
-    <header>
-        <h1>Hi {{ name }}! You're Invited to a Birthday Party!</h1>
-        {% if rsvp_thanks %}
-        <p style="color: green; font-weight: bold;">Thanks {{ name }}, we've saved your RSVP!</p>
-    {% endif %}
-    </header>
+    <section class="section">
+        <div class="container">
+            <header class="mb-5">
+                <h1 class="title is-3 has-text-primary">Hi {{ name }}! You're Invited to a Birthday Party!</h1>
+                {% if rsvp_thanks %}
+                <p class="notification is-success-light">Thanks {{ name }}, we've saved your RSVP!</p>
+            {% endif %}
+            </header>
 
-    <main>
-        <section id="party-details">
-            <h2>Party Details</h2>
-            <p>Join us to celebrate Emma's 3rd birthday!<br>
-                Weather permitting, we will be having a BBQ in the garden.<br>
-                There will be games, food, and fun for all ages!<br>
-                Weather not-permitting, there will be games, puzzles, trains, and movies inside.<br>
-                </p>
-        </section>
-        <section id="menu">
-            <h2>Menu</h2>
-            <p>BBQ Pichana steak (aka rump cap), chimichurri, fresh oven baked rolls<br>
-                Beef burgers, sausages, chicken drumsticks, chicken goujons<br>
-                Veggie skewers, salads<br>
-                </p>
-        </section>
-        <section id="date-time">
-            <h2>Date and Time</h2>
-            <p>Date: Saturday, May 24, 2025</p>
-            <p>Time: 1:00 PM - 5:00 PM</p>
-        </section>
-        <section id="location">
-            <h2>Location</h2>
-            <p>2 Agars Road<br>Lisburn<br>BT28 2TQ</p>
-        </section>
-        <section id="gifts">
-            <h2>Gift Ideas</h2>
-            <p>You don't need to get Emma anything, she has plenty of toys, stuffed animals, and clothes. 
-            However, we have bought her a new single bed for her birthday. If you want to get her something 
-            you could get her more bedding.</p>
-        </section>
-        <section id="rsvp">
-            <h2>RSVP</h2>
-            <p>Please let us know if you can make it!</p>
-            <form id="rsvpForm", method="post", action="/rsvp">
-                <input type="hidden" name="uuid" value="{{ uuid }}">
-                <label for="attending">Will you attend?</label>
-                <select id="attending" name="rsvp" required>
-                    <option value="yes">Yes</option>
-                    <option value="no">No</option>
-                </select><br>
-                <textarea name="message", rows="2" cols="40" placeholder="Leave a note it you'd like..."></textarea><br>
-                <button type="submit">Submit</button>
-            </form>
-        </section>
-    </main>
-    <footer>
-        <p>We hope to see you there!</p>
-    </footer>
+            <main>
+                <section class="box">
+                    <h2 class="title is-4">Party Details</h2>
+                    <p>
+                        Join us to celebrate Emma's 3rd birthday!<br>
+                        Weather permitting, we will be having a BBQ in the garden.<br>
+                        There will be games, food, and fun for all ages!<br>
+                        Weather not-permitting, there will be games, puzzles, trains, and movies inside.<br>
+                    </p>
+                </section>
+
+                <section class="box">
+                    <h2 class="title is-4">Menu</h2>
+                    <p>
+                        BBQ Pichana steak (aka rump cap), chimichurri, fresh oven baked rolls<br>
+                        Beef burgers, sausages, chicken drumsticks, chicken goujons<br>
+                        Veggie skewers, salads<br>
+                    </p>
+                </section>
+
+                <section class="box">
+                    <h2 class="title is-4">Date and Time</h2>
+                    <p><strong>Date:</strong> Saturday, May 24, 2025</p>
+                    <p><strong>Time:</strong> 1:00 PM - 5:00 PM</p>
+                </section>
+
+                <section class="box">
+                    <h2 class="title is-4">Location</h2>
+                    <p>2 Agars Road<br>Lisburn<br>BT28 2TQ</p>
+                </section>
+                
+                <section class="box">
+                    <h2 class="title is-4">Gift Ideas</h2>
+                    <p>
+                        You don't need to get Emma anything, she has plenty of toys, stuffed animals, and clothes. 
+                        However, we have bought her a new single bed for her birthday. If you want to get her something 
+                        you could get her more bedding.
+                    </p>
+                </section>
+
+                <section class="box">
+                    <h2 class="title is-4">RSVP</h2>
+                    <p class="mb-3">Please let us know if you can make it!</p>
+                    <form method="post", action="/rsvp">
+                        <input type="hidden" name="uuid" value="{{ uuid }}">
+                        
+                        <div class="field">
+                            <label class="label" for="attending">Will you attend?</label>
+                            <div class="control">
+                                <div class="select">
+                                    <select id="attending" name="rsvp" required>
+                                        <option value="yes">Yes</option>
+                                        <option value="no">No</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="field">
+                            <label class="label" for="message">Message (optional)</label>
+                            <div class="control">
+                                <textarea class="textarea" id="message", name="message" rows="2" placeholder="Leave a note it you'd like..."></textarea>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <div class="control">
+                                <button class="button is-link">Submit</button>
+                            </div>
+                        </div>
+                    </form>
+                </section>
+            </main>
+
+            <footer class="mt-6 has-text-centered">
+                <p class="has-text-grey">We hope to see you there!</p>
+            </footer>
+        </div>
+    </section>
 </body>
 </html>

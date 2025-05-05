@@ -5,9 +5,10 @@ description = ""
 authors = [
     {name = "Matt Quinn",email = "mjquinn88@outlook.com"}
 ]
-requires-python = ">=3.13"
+requires-python = ">=3.9,<3.10"
 dependencies = [
-    "flask (>=3.1.0,<4.0.0)"
+    "flask (>=3.1.0,<4.0.0)",
+    "gunicorn (>=23.0.0,<24.0.0)"
 ]
 
 

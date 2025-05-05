@@ -1,27 +1,30 @@
 from flask import Flask, render_template, abort, request, redirect, url_for
-import sqlite3
 from uuid import UUID
+from dotenv import load_dotenv
+import os
+
 from admin import requires_auth
+from model import Model
+from exceptions import NotFoundError
+
+load_dotenv()
 
 app = Flask(__name__)
+db = Model(
+    connection_string=os.environ.get("CONNECTION_STRING"),
+    admin_password=os.environ.get("ADMIN_PASSWORD"),
+)
 
 
 @app.route("/invite/<uuid>")
 def invite(uuid: UUID):
-    guest_name = get_guest_by_uuid(uuid)
-    if not guest_name:
+    try:
+        guest_name = db.get_guest_by_uuid(uuid)
+    except NotFoundError:
         abort(404)
+
     rsvp_thanks = request.args.get('rsvp') == "thanks"
     return render_template('index.html', name=guest_name, uuid=uuid, rsvp_thanks=rsvp_thanks)
-
-
-def get_guest_by_uuid(uuid: UUID) -> str | None:
-    conn = sqlite3.connect('guests.db')
-    cursor = conn.cursor()
-    cursor.execute("SELECT name FROM guests WHERE uuid = ?", (uuid,))
-    row = cursor.fetchone()
-    conn.close()
-    return row[0] if row else None
 
 
 @app.route("/rsvp", methods=['POST'])
@@ -30,20 +33,7 @@ def rsvp():
     rsvp = request.form.get('rsvp')
     message = request.form.get('message', '')
 
-    conn = sqlite3.connect('guests.db')
-    cursor = conn.cursor()
-    cursor.execute("""
-        UPDATE guests 
-        SET 
-            rsvp_status = ?,
-            rsvp_message = ?
-        WHERE uuid = ?
-    """,
-    (rsvp, message, uuid),
-    )
-
-    conn.commit()
-    conn.close()
+    db.update_guest_rsvp(uuid=uuid, rsvp=rsvp, message=message)
 
     return redirect(url_for('invite', uuid=uuid, rsvp="thanks"))
 
@@ -51,9 +41,5 @@ def rsvp():
 @app.route("/admin")
 @requires_auth
 def admin():
-    conn = sqlite3.connect('guests.db')
-    cursor = conn.cursor()
-    cursor.execute("SELECT name, email, rsvp_status, rsvp_message FROM guests ORDER BY name")
-    guests = cursor.fetchall()
-    conn.close()
+    guests = db.get_all_guests()
     return render_template('admin.html', guests=guests)

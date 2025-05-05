@@ -16,6 +16,10 @@ db = Model(
 )
 
 
+@app.route("/")
+def home():
+    return "Debuging: web server is running."
+
 @app.route("/invite/<uuid>")
 def invite(uuid: UUID):
     try:

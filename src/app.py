@@ -3,9 +3,9 @@ from uuid import UUID
 from dotenv import load_dotenv
 import os
 
-from admin import requires_auth
-from model import Model
-from exceptions import NotFoundError
+from .admin import requires_auth
+from .model import Model
+from .exceptions import NotFoundError
 
 load_dotenv()
 

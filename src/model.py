@@ -2,7 +2,7 @@ import sqlite3
 from uuid import UUID
 from werkzeug.security import generate_password_hash
 
-from exceptions import NotFoundError
+from .exceptions import NotFoundError
 
 
 class Model:

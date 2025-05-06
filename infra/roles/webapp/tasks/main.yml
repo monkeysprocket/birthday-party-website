@@ -1,0 +1,54 @@
+- name: Create webapp group
+  group:
+    name: webapp
+    state: present
+
+- name: Add ec2-user to webapp group
+  user:
+    name: ec2-user
+    groups: webapp
+    append: yes
+
+- name: Install Python and dependencies
+  yum:
+    name:
+      - python3
+      - git
+    state: present
+
+- name: Clone Flask app repo
+  git:
+    repo: "{{ git_repo }}"
+    dest: "{{ project_dir }}"
+    version: master
+
+- name: Copy .env file to remote server
+  copy:
+    src: ../.env
+    dest: "{{ project_dir }}/.env"
+    owner: ec2-user
+    group: webapp
+    mode: '0644'
+
+- name: Create virtual environment
+  command: python3 -m venv {{ project_dir }}/venv
+  args:
+    creates: "{{ project_dir }}/venv"
+
+- name: Install requirements
+  pip:
+    requirements: "{{ project_dir }}/requirements.txt"
+    virtualenv: "{{ project_dir }}/venv"
+
+- name: Copy Gunicorn systemd service
+  template:
+    src: gunicorn.service.j2
+    dest: /etc/systemd/system/gunicorn.service
+    mode: '0644'
+
+- name: Start and enable Gunicorn
+  systemd:
+    name: gunicorn
+    enabled: yes
+    state: restarted
+    daemon_reload: yes

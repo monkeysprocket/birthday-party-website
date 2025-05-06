@@ -6,6 +6,7 @@ import os
 from .admin import requires_auth
 from .model import Model
 from .exceptions import NotFoundError
+from .send_email import send_invite_email
 
 load_dotenv()
 
@@ -54,5 +55,6 @@ def admin_new_guest():
     name = request.form.get("name")
     email = request.form.get("email")
     if name and email:
-        db.add_guest(name, email)
+        new_guest_uuid = db.add_guest(name, email)
+        send_invite_email(name, email, new_guest_uuid)
     return redirect(url_for("admin"))

@@ -65,12 +65,13 @@ class TestAddGuest:
     GUEST_EMAIL = "david@example.com"
 
     def test_happy_path(self, model):
-        model.add_guest(name=self.GUEST_NAME, email=self.GUEST_EMAIL)
+        new_guest_uuid = model.add_guest(name=self.GUEST_NAME, email=self.GUEST_EMAIL)
 
         with model._connect() as conn:
-            guest = _get_guest_by_name(conn, self.GUEST_NAME)
+            guest = _get_guest_by_uuid(conn, new_guest_uuid)
 
         assert guest is not None
+        assert guest["name"] == self.GUEST_NAME
         assert guest["email"] == self.GUEST_EMAIL 
     
     def test_no_name_raises(self, model):
@@ -141,18 +142,6 @@ def _add_guest(conn: sqlite3.Connection, uuid: str, name: str) -> None:
 def _get_guest_by_uuid(conn: sqlite3.Connection, uuid: str) -> dict[str]:
     cur = conn.cursor()
     cur.execute("SELECT name, email, rsvp_status, rsvp_message FROM guests WHERE uuid = ?", (uuid,))
-    result = cur.fetchone()
-    return {
-        "name": result[0],
-        "email": result[1],
-        "rsvp_status": result[2],
-        "rsvp_message": result[3],
-    }
-
-
-def _get_guest_by_name(conn: sqlite3.Connection, name: str) -> dict[str]:
-    cur = conn.cursor()
-    cur.execute("SELECT name, email, rsvp_status, rsvp_message FROM guests WHERE name = ?", (name,))
     result = cur.fetchone()
     return {
         "name": result[0],

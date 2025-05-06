@@ -31,7 +31,7 @@ class Model:
             guests = cursor.fetchall()
             return guests
     
-    def add_guest(self, name: str, email: str) -> None:
+    def add_guest(self, name: str, email: str) -> UUID:
         if not name or not email:
             raise IncompleteDataError
 
@@ -45,6 +45,7 @@ class Model:
             (new_guest_uuid, name, email),
             )
             conn.commit()
+        return new_guest_uuid
     
     def update_guest_rsvp(self, uuid: UUID, rsvp: str, message: str) -> None:
         with self._connect() as conn:

@@ -19,7 +19,7 @@ db = Model(
 
 @app.route("/")
 def home():
-    return "Debuging: web server is running."
+    return "Info: Web App to send and manage birthday party invites"
 
 @app.route("/invite/<uuid>")
 def invite(uuid: UUID):

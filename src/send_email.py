@@ -11,10 +11,10 @@ def send_invite_email(name, email, invite_id):
 
     msg = MIMEText(body)
     msg['Subject'] = subject
-    msg['From'] = formataddr((os.environ.get('EMAIL_FROM_NAME'), os.environ['EMAIL_USERNAME']))
+    msg['From'] = formataddr((os.environ.get('EMAIL_FROM_NAME'), os.environ['EMAIL_FROM']))
     msg['To'] = email
 
-    with smtplib.SMTP(os.environ['SMTP_SERVER'], int(os.environ['SMTP_PORT'])) as server:
+    with smtplib.SMTP(os.environ['EMAIL_HOST'], int(os.environ['EMAIL_PORT'])) as server:
         server.starttls()
         server.login(os.environ['EMAIL_USERNAME'], os.environ['EMAIL_PASSWORD'])
         server.sendmail(msg['From'], [email], msg.as_string())

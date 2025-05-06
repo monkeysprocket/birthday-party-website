@@ -42,8 +42,17 @@ def rsvp():
     return redirect(url_for('invite', uuid=uuid, rsvp="thanks"))
 
 
-@app.route("/admin")
+@app.route("/admin", methods=["GET"])
 @requires_auth
 def admin():
     guests = db.get_all_guests()
     return render_template('admin.html', guests=guests)
+
+
+@app.route("/admin/add_guest", methods=["POST"])
+def admin_new_guest():
+    name = request.form.get("name")
+    email = request.form.get("email")
+    if name and email:
+        db.add_guest(name, email)
+    return redirect(url_for("admin"))

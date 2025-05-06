@@ -1,8 +1,8 @@
 import sqlite3
-from uuid import UUID
+from uuid import UUID, uuid4
 from werkzeug.security import generate_password_hash
 
-from .exceptions import NotFoundError
+from .exceptions import NotFoundError, IncompleteDataError
 
 
 class Model:
@@ -30,6 +30,21 @@ class Model:
             cursor.execute("SELECT name, email, rsvp_status, rsvp_message FROM guests ORDER BY name")
             guests = cursor.fetchall()
             return guests
+    
+    def add_guest(self, name: str, email: str) -> None:
+        if not name or not email:
+            raise IncompleteDataError
+
+        new_guest_uuid = uuid4().hex
+        with self._connect() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""\
+            INSERT INTO guests (uuid, name, email)
+            VALUES (?, ?, ?)
+            """,
+            (new_guest_uuid, name, email),
+            )
+            conn.commit()
     
     def update_guest_rsvp(self, uuid: UUID, rsvp: str, message: str) -> None:
         with self._connect() as conn:

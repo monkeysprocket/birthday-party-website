@@ -4,7 +4,8 @@ import os
 import sqlite3
 
 from src.model import Model
-from src.exceptions import NotFoundError
+from src.exceptions import NotFoundError, IncompleteDataError
+
 
 @pytest.fixture()
 def model() -> Model:
@@ -59,6 +60,28 @@ class TestGetAllGuests:
         assert len(result) == 2
 
 
+class TestAddGuest:
+    GUEST_NAME = "david"
+    GUEST_EMAIL = "david@example.com"
+
+    def test_happy_path(self, model):
+        model.add_guest(name=self.GUEST_NAME, email=self.GUEST_EMAIL)
+
+        with model._connect() as conn:
+            guest = _get_guest_by_name(conn, self.GUEST_NAME)
+
+        assert guest is not None
+        assert guest["email"] == self.GUEST_EMAIL 
+    
+    def test_no_name_raises(self, model):
+        with pytest.raises(IncompleteDataError):
+            model.add_guest(name=None, email=self.GUEST_EMAIL)
+    
+    def test_no_email_raises(self, model):
+        with pytest.raises(IncompleteDataError):
+            model.add_guest(name=self.GUEST_NAME, email=None)
+
+
 class TestUpdateGuestRSVP:
     GUEST_UUID = uuid.uuid4().hex
     GUEST_NAME = "david"
@@ -70,7 +93,7 @@ class TestUpdateGuestRSVP:
         model.update_guest_rsvp(self.GUEST_UUID, rsvp="yes", message=None)
 
         with model._connect() as conn:
-            guest = _get_guest(conn, self.GUEST_UUID)
+            guest = _get_guest_by_uuid(conn, self.GUEST_UUID)
 
         assert guest["rsvp_status"] == "yes"
     
@@ -81,7 +104,7 @@ class TestUpdateGuestRSVP:
         model.update_guest_rsvp(self.GUEST_UUID, rsvp="no", message=None)
 
         with model._connect() as conn:
-            guest = _get_guest(conn, self.GUEST_UUID)
+            guest = _get_guest_by_uuid(conn, self.GUEST_UUID)
 
         assert guest["rsvp_status"] == "no"
     
@@ -92,7 +115,7 @@ class TestUpdateGuestRSVP:
         model.update_guest_rsvp(self.GUEST_UUID, rsvp="yes", message="test message")
 
         with model._connect() as conn:
-            guest = _get_guest(conn, self.GUEST_UUID)
+            guest = _get_guest_by_uuid(conn, self.GUEST_UUID)
 
         assert guest["rsvp_status"] == "yes"
         assert guest["rsvp_message"] == "test message"
@@ -104,7 +127,7 @@ class TestUpdateGuestRSVP:
         model.update_guest_rsvp(self.GUEST_UUID, rsvp="no", message="testing")
 
         with model._connect() as conn:
-            guest = _get_guest(conn, self.GUEST_UUID)
+            guest = _get_guest_by_uuid(conn, self.GUEST_UUID)
 
         assert guest["rsvp_status"] == "no"
         assert guest["rsvp_message"] == "testing"
@@ -115,9 +138,21 @@ def _add_guest(conn: sqlite3.Connection, uuid: str, name: str) -> None:
         cur.execute("INSERT INTO guests (uuid, name) VALUES (?, ?)", (uuid, name))
         conn.commit()
 
-def _get_guest(conn: sqlite3.Connection, uuid: str) -> dict[str]:
+def _get_guest_by_uuid(conn: sqlite3.Connection, uuid: str) -> dict[str]:
     cur = conn.cursor()
     cur.execute("SELECT name, email, rsvp_status, rsvp_message FROM guests WHERE uuid = ?", (uuid,))
+    result = cur.fetchone()
+    return {
+        "name": result[0],
+        "email": result[1],
+        "rsvp_status": result[2],
+        "rsvp_message": result[3],
+    }
+
+
+def _get_guest_by_name(conn: sqlite3.Connection, name: str) -> dict[str]:
+    cur = conn.cursor()
+    cur.execute("SELECT name, email, rsvp_status, rsvp_message FROM guests WHERE name = ?", (name,))
     result = cur.fetchone()
     return {
         "name": result[0],

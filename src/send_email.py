@@ -1,12 +1,17 @@
 import os
+import traceback
 
 import boto3
 from botocore.exceptions import ClientError
 
+from .logger import create_single_file_logger
+
 ses = boto3.client("ses", region_name=os.environ["AWS_REGION"])
+logger = create_single_file_logger()
 
 
 def send_invite_email(name: str, email: str, invite_id: str) -> None:
+    logger.debug("trying to send invite to %s", email)
     subject = "You're Invited!"
     link = f"{os.environ['SITE_BASE_URL']}/invite/{invite_id}"
     body_text = f"Hi {name},\n\nYou're invited! Click your personal invite link to RSVP:\n{link}\n\nSee you there!"
@@ -35,5 +40,6 @@ def send_invite_email(name: str, email: str, invite_id: str) -> None:
                 }
             }
         )
+        logger.debug("successfully sent invite to %s", email)
     except ClientError as e:
-        print(f"SES error: {e.response['Error']['Message']}")
+        logger.error("Failed to send invite to %s\n%s\n%s", email, repr(e), traceback.format_exc())

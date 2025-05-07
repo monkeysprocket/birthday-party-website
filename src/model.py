@@ -1,93 +1,72 @@
-import sqlite3
 from uuid import UUID, uuid4
-from werkzeug.security import generate_password_hash
+
+import boto3
+from botocore.exceptions import ClientError
 
 from .exceptions import NotFoundError, IncompleteDataError
 
 
 class Model:
-    def __init__(self, connection_string: str, admin_password: str) -> None:
-        self._connection_string = connection_string
-
-        self._setup_db(admin_password)
+    def __init__(self) -> None:
+        self._dynamodb = boto3.resource("dynamodb")
+        self._guests_table = self._dynamodb.Table("guests")
+        self._users_table = self._dynamodb.Table("users")
     
-    def _connect(self) -> sqlite3.Connection:
-        return sqlite3.connect(self._connection_string)
-    
-    def get_guest_by_uuid(self, uuid: UUID) -> str:
-        with self._connect() as conn:
-            cursor = conn.cursor()
-            cursor.execute("SELECT name FROM guests WHERE uuid = ?", (uuid,))
-            row = cursor.fetchone()
-            if not row:
+    def get_guest_by_uuid(self, uuid: str) -> str:
+        try:
+            response = self._guests_table.get_item(Key={"id": uuid})
+            item = response.get("Item")
+            if not item:
                 raise NotFoundError
-            else:
-                return row[0]
+            return item["name"]
+        except ClientError as e:
+            raise RuntimeError(e.response['Error']['Message'])
     
     def get_all_guests(self):
-         with self._connect() as conn:
-            cursor = conn.cursor()
-            cursor.execute("SELECT name, email, rsvp_status, rsvp_message FROM guests ORDER BY name")
-            guests = cursor.fetchall()
-            return guests
-    
-    def add_guest(self, name: str, email: str) -> UUID:
+        response = self._guests_table.scan(
+            ProjectionExpression="#n, email, rsvp_status, rsvp_message",
+            ExpressionAttributeNames={"#n": "name"},
+        )
+        return [
+            (item["name"], item["email"], item.get("rsvp_status", "pending"), item.get("rsvp_message", ""))
+            for item in response.get("Items", [])
+        ]
+
+    def add_guest(self, name: str, email: str) -> str:
         if not name or not email:
             raise IncompleteDataError
 
         new_guest_uuid = uuid4().hex
-        with self._connect() as conn:
-            cursor = conn.cursor()
-            cursor.execute("""\
-            INSERT INTO guests (uuid, name, email)
-            VALUES (?, ?, ?)
-            """,
-            (new_guest_uuid, name, email),
-            )
-            conn.commit()
+        item = {
+            "uuid": new_guest_uuid,
+            "name": name,
+            "email": email,
+            "rsvp_status": "pending"
+        }
+
+        try:
+            self._guests_table.put_item(Item=item, ConditionExpression="attribute_not_exists(email")
+        except ClientError as e:
+            if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
+                raise ValueError("Guest with this email already exists.")
+            else:
+                raise
         return new_guest_uuid
     
-    def update_guest_rsvp(self, uuid: UUID, rsvp: str, message: str) -> None:
-        with self._connect() as conn:
-            cursor = conn.cursor()
-            cursor.execute("""\
-            UPDATE guests 
-            SET 
-                rsvp_status = ?,
-                rsvp_message = ?
-            WHERE uuid = ?
-            """,
-            (rsvp, message, uuid),
+    def update_guest_rsvp(self, id_: UUID, rsvp: str, message: str) -> None:
+        try:
+            self._guests_table.update_item(
+                Key={"id": str(id_)},
+                UpdateExpression="SET rsvp_status = :r, rsvp_message = :m",
+                ExpressionAttributeValues={
+                    ":r": rsvp,
+                    ":m": message
+                }
             )
-            conn.commit()
+        except ClientError as e:
+            raise RuntimeError(e.response['Error']['Message'])
 
-    def _setup_db(self, admin_password: str) -> None:
-        print("setting up db")
-        with self._connect() as conn:
-            cursor = conn.cursor()
 
-            cursor.execute("""\
-            CREATE TABLE IF NOT EXISTS guests (
-                uuid TEXT PRIMARY KEY,
-                name TEXT,
-                email TEXT UNIQUE,
-                rsvp_status TEXT DEFAULT 'pending',
-                rsvp_message TEXT
-            )"""
-                )
-
-            cursor.execute("""\
-            CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY,
-                username TEXT UNIQUE NOT NULL,
-                password_hash TEXT NOT NULL
-            )"""
-                )
-            
-            username = "admin"
-            if not admin_password:
-                raise RuntimeError("ADMIN_PASSWORD environment variable is not set")
-            password_hash = generate_password_hash(admin_password)
-
-            cursor.execute("INSERT OR REPLACE INTO users (id, username, password_hash) VALUES (1, ?, ?)", (username, password_hash))
-            conn.commit()
+if __name__ == "__main__":
+    model = Model()
+    print(model.get_all_guests())

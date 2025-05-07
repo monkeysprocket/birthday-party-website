@@ -1,20 +1,15 @@
-from flask import Flask, render_template, abort, request, redirect, url_for
-from uuid import UUID
 from dotenv import load_dotenv
-import os
+from flask import Flask, render_template, abort, request, redirect, url_for
 
 from .admin import requires_auth
-from .model import Model
 from .exceptions import NotFoundError
+from .model import Model
 from .send_email import send_invite_email
 
 load_dotenv()
 
 app = Flask(__name__)
-db = Model(
-    connection_string=os.environ.get("CONNECTION_STRING"),
-    admin_password=os.environ.get("ADMIN_PASSWORD"),
-)
+db = Model()
 
 
 @app.route("/")
@@ -22,7 +17,7 @@ def home():
     return render_template("index.html")
 
 @app.route("/invite/<uuid>")
-def invite(uuid: UUID):
+def invite(uuid: str):
     try:
         guest_name = db.get_guest_by_uuid(uuid)
     except NotFoundError:

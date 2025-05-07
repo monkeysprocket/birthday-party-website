@@ -2,7 +2,7 @@ import logging
 from pathlib import Path
 
 DEFAULT_LOGGER_NAME = "party_app.log"
-DEFAULT_LOG_DIR = Path("/var/log/partywebapp")
+DEFAULT_LOG_DIR = Path("./logs")
 
 
 def create_single_file_logger(

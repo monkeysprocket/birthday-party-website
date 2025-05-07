@@ -42,7 +42,12 @@ def rsvp():
 @requires_auth
 def admin():
     guests = db.get_all_guests()
-    return render_template('admin.html', guests=guests)
+    return render_template(
+        'admin.html',
+        guests=guests,
+        message=request.args.get("message"),
+        error=request.args.get("error"),
+    )
 
 
 @app.route("/admin/add_guest", methods=["POST"])
@@ -51,5 +56,9 @@ def admin_new_guest():
     email = request.form.get("email")
     if name and email:
         new_guest_uuid = db.add_guest(name, email)
-        send_invite_email(name, email, new_guest_uuid)
-    return redirect(url_for("admin"))
+        try:
+            send_invite_email(name, email, new_guest_uuid)
+        except Exception as e:
+            return redirect(url_for("admin", error=f"Failed to send invite to {email}. {e}"))
+        else:
+            return redirect(url_for("admin", message=f"Invite sent to {email}."))

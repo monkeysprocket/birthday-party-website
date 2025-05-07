@@ -37,8 +37,14 @@
             </tbody>
         </table>
     </div>
+
     <div class="section">
         <h2 class="title is-4">Add a New Guest</h2>
+        {% if message %}
+        <p class="notification is-success">{{ message }}</p>
+        {% elif error %}
+        <p class="notification is-danger">{{ error }}</p>
+        {% endif %}
         <form method="POST" action="/admin/add_guest">
             <div class="field">
                 <label class="label">Name</label>

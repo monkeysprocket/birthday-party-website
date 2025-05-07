@@ -1,3 +1,4 @@
+import os
 from uuid import UUID, uuid4
 
 import boto3
@@ -8,7 +9,7 @@ from .exceptions import NotFoundError, IncompleteDataError
 
 class Model:
     def __init__(self) -> None:
-        self._dynamodb = boto3.resource("dynamodb")
+        self._dynamodb = boto3.resource("dynamodb", region_name=os.environ['AWS_REGION'])
         self._guests_table = self._dynamodb.Table("guests")
         self._users_table = self._dynamodb.Table("users")
     

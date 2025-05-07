@@ -54,10 +54,10 @@ class Model:
                 raise
         return new_guest_uuid
     
-    def update_guest_rsvp(self, id_: UUID, rsvp: str, message: str) -> None:
+    def update_guest_rsvp(self, uuid: UUID, rsvp: str, message: str) -> None:
         try:
             self._guests_table.update_item(
-                Key={"id": str(id_)},
+                Key={"id": str(uuid)},
                 UpdateExpression="SET rsvp_status = :r, rsvp_message = :m",
                 ExpressionAttributeValues={
                     ":r": rsvp,

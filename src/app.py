@@ -19,7 +19,7 @@ db = Model(
 
 @app.route("/")
 def home():
-    return "Info: Web App to send and manage birthday party invites"
+    return render_template("index.html")
 
 @app.route("/invite/<uuid>")
 def invite(uuid: UUID):
@@ -29,7 +29,7 @@ def invite(uuid: UUID):
         abort(404)
 
     rsvp_thanks = request.args.get('rsvp') == "thanks"
-    return render_template('index.html', name=guest_name, uuid=uuid, rsvp_thanks=rsvp_thanks)
+    return render_template('invite.html', name=guest_name, uuid=uuid, rsvp_thanks=rsvp_thanks)
 
 
 @app.route("/rsvp", methods=['POST'])

@@ -39,14 +39,14 @@ class Model:
 
         new_guest_uuid = uuid4().hex
         item = {
-            "uuid": new_guest_uuid,
+            "id": new_guest_uuid,
             "name": name,
             "email": email,
             "rsvp_status": "pending"
         }
 
         try:
-            self._guests_table.put_item(Item=item, ConditionExpression="attribute_not_exists(email")
+            self._guests_table.put_item(Item=item, ConditionExpression="attribute_not_exists(email)")
         except ClientError as e:
             if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
                 raise ValueError("Guest with this email already exists.")

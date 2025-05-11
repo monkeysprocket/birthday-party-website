@@ -1,14 +1,3 @@
-- name: Create webapp group
-  group:
-    name: webapp
-    state: present
-
-- name: Add ec2-user to webapp group
-  user:
-    name: ec2-user
-    groups: webapp
-    append: yes
-
 - name: Install Python and dependencies
   yum:
     name:
@@ -20,7 +9,7 @@
   git:
     repo: "{{ git_repo }}"
     dest: "{{ project_dir }}"
-    version: master
+    version: serverless
 
 - name: Copy .env file to remote server
   copy:

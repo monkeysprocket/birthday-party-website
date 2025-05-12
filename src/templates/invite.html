@@ -96,6 +96,8 @@
 <script>
     const pathname = window.location.pathname;
     const uuid = pathname.split("/").filter(Boolean).pop(); // gets last part of path
+    const queryParams = new URLSearchParams(window.location.search);
+    const rsvpStatus = queryParams.get("rsvp");
 
     async function loadGuestName() {
         try {

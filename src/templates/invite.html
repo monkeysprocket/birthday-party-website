@@ -9,10 +9,8 @@
     <section class="section">
         <div class="container">
             <header class="mb-5">
-                <h1 class="title is-3 has-text-primary">Hi {{ name }}! You're Invited to a Birthday Party!</h1>
-                {% if rsvp_thanks %}
-                <p class="notification is-success-light">Thanks {{ name }}, we've saved your RSVP!</p>
-            {% endif %}
+                <h1 id="greeting" class="title is-3 has-text-primary"></h1>
+                <p id="rsvp-status" class="notification is-success-light" style="display: none"></p>
             </header>
 
             <main>
@@ -107,12 +105,13 @@
             document.getElementById("greeting").textContent = "Hi ${data.name}! You're Invited to a Birthday Party!";
             if (rsvpStatus === "thanks") {
                document.getElementById("rsvp-status").textContent = "Thanks ${data.name}, we've saved your RSVP!";
-    }
+            }
         } catch (err) {
             document.getElementById("greeting").textContent = "You're Invited to a Birthday Party!";
             if (rsvpStatus === "thanks") {
                document.getElementById("rsvp-status").textContent = "Thanks, we've saved your RSVP!";
             console.error(err);
+            }
         }
     }
 

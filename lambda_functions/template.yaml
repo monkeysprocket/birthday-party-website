@@ -1,0 +1,36 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  party-backend
+
+  Backend for party invite webapp. Lambda functions behind API Gateway.
+
+Globals:
+  Function:
+    Timeout: 3
+
+Resources:
+  GetGuestNameFromInviteUUIDFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: get_guest_name_from_invite_uuid/
+      Handler: app.lambda_handler
+      Runtime: python3.13
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          DYNAMODB_TABLE: "guests"
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+              Resource: !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/guests
+      Events:
+        PartyAPI:
+          Type: Api
+          Properties:
+            Path: /invite/{uuid}
+            Method: get

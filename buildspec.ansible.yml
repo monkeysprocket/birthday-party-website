@@ -16,4 +16,4 @@ phases:
       - chmod 600 ec2_key.pem
   build:
     commands:
-      - ansible-playbook infra/playbook.yml -i infra/inventory/hosts.ini --private-key ec2_key.pem
+      - ansible-playbook infra/playbook.yml -i infra/inventory/hosts.ini

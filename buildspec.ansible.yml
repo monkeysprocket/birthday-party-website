@@ -14,4 +14,4 @@ phases:
       - sed -i "s|__API_URL__|$API_URL|g" infra/playbook.yml
   build:
     commands:
-      - ansible-playbook infra/playbook.yml -i infra/inventory/hosts.ini --vault-password-file vault-pass.txt
+      - ansible-playbook infra/playbook.yml -i infra/inventory/hosts.ini

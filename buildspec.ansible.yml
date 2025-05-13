@@ -12,6 +12,8 @@ phases:
       - sed -i "s|__HOST_IP__|HOST_IP|g" infra/playbook.yml
       - sed -i "s|__GIT_REPO__|GIT_REPO|g" infra/playbook.yml
       - sed -i "s|__API_URL__|$API_URL|g" infra/playbook.yml
+      - aws ssm get-parameter --name "/partyApp/sam/ssh-key" --with-decryption --query "Parameter.Value" --output text > ec2_key.pem
+      - chmod 600 ec2_key.pem
   build:
     commands:
-      - ansible-playbook infra/playbook.yml -i infra/inventory/hosts.ini
+      - ansible-playbook infra/playbook.yml -i infra/inventory/hosts.ini --private-key ec2_key.pem

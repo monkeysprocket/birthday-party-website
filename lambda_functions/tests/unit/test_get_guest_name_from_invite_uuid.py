@@ -3,7 +3,7 @@ from typing import Any
 
 from botocore.exceptions import ClientError
 
-from lambda_functions.get_guest_name_from_invite_uuid.app import get_guest_name_from_invite_uuid, lambda_handler
+from lambda_functions.get_guest_name_from_invite_uuid.app import get_guest_name_from_invite_uuid
 
 GUEST_UUID = uuid.uuid4().hex
 GUEST_NAME = "alice"
@@ -18,7 +18,7 @@ class MockTable:
         if self._raises:
             raise ClientError({"Error": {"Message": "ThisIsATestError"}}, "")
         if self._guest_exists:
-            return {"Item" :{"name": "alice"}}
+            return {"Item" :{"name": GUEST_NAME}}
         else:
             return {}
 

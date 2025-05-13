@@ -48,5 +48,9 @@ def generate_response(body: dict[str, str], status_code: int):
     return {
         "statusCode": status_code,
         "body": json.dumps(body),
-        "headers": {"Content-Type": "application/json"},
+        "headers": {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "https://party.matthewjamesquinn.com",
+        },
+
     }

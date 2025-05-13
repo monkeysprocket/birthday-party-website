@@ -5,8 +5,6 @@
   vars:
     project_dir: /home/ec2-user/birthday-party-website
 
-    host_ip: __HOST_IP__
-      
     git_repo: __GIT_REPO__
 
     api_url: __API_URL__

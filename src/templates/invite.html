@@ -104,9 +104,9 @@
             const response = await fetch(`{{ API_URL }}/invite/${uuid}`);
             if (!response.ok) throw new Error("Guest not found");
             const data = await response.json();
-            document.getElementById("greeting").textContent = "Hi ${data.name}! You're Invited to a Birthday Party!";
+            document.getElementById("greeting").textContent = `Hi ${data.name}! You're Invited to a Birthday Party!`;
             if (rsvpStatus === "thanks") {
-               document.getElementById("rsvp-status").textContent = "Thanks ${data.name}, we've saved your RSVP!";
+               document.getElementById("rsvp-status").textContent = `Thanks ${data.name}, we've saved your RSVP`;
             }
         } catch (err) {
             document.getElementById("greeting").textContent = "You're Invited to a Birthday Party!";

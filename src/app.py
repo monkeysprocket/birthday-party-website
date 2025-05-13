@@ -1,3 +1,5 @@
+import os
+
 from dotenv import load_dotenv
 from flask import Flask, render_template, abort, request, redirect, url_for
 
@@ -24,7 +26,13 @@ def invite(uuid: str):
         abort(404)
 
     rsvp_thanks = request.args.get('rsvp') == "thanks"
-    return render_template('invite.html', name=guest_name, uuid=uuid, rsvp_thanks=rsvp_thanks)
+    return render_template(
+        'invite.html',
+        name=guest_name,
+        uuid=uuid,
+        rsvp_thanks=rsvp_thanks,
+        API_URL=os.environ["API_URL"],
+    )
 
 
 @app.route("/rsvp", methods=['POST'])
@@ -35,7 +43,7 @@ def rsvp():
 
     db.update_guest_rsvp(uuid=uuid, rsvp=rsvp, message=message)
 
-    return redirect(url_for('invite', uuid=uuid, rsvp="thanks"))
+    return redirect(url_for('invite', uuid=uuid, rsvp="thanks", API_URL=os.environ["API_URL"]))
 
 
 @app.route("/admin", methods=["GET"])

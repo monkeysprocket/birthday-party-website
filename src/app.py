@@ -19,11 +19,9 @@ def home():
 
 @app.route("/invite/<uuid>")
 def invite(uuid: str):
-    rsvp_thanks = request.args.get('rsvp') == "thanks"
     return render_template(
         'invite.html',
         uuid=uuid,
-        rsvp_thanks=rsvp_thanks,
         API_URL=os.environ["API_URL"],
     )
 

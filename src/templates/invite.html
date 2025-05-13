@@ -56,14 +56,12 @@
                 <section class="box">
                     <h2 class="title is-4">RSVP</h2>
                     <p class="mb-3">Please let us know if you can make it!</p>
-                    <form method="post" action="/rsvp">
-                        <input type="hidden" name="uuid" value="{{ uuid }}">
-                        
+                    <form id="rsvp-form">
                         <div class="field">
-                            <label class="label" for="attending">Will you attend?</label>
+                            <label class="label" for="rsvp">Will you attend?</label>
                             <div class="control">
                                 <div class="select">
-                                    <select id="attending" name="rsvp" required>
+                                    <select id="rsvp" name="rsvp" required>
                                         <option value="yes">Yes</option>
                                         <option value="no">No</option>
                                     </select>
@@ -120,5 +118,29 @@
     }
 
     loadGuestName();
+
+    document.getElementById("rsvp-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const rsvp = form.rsvp.value;
+        const message = form.message.value;
+
+        try {
+            const res = await fetch("{{ API_URL }}/rsvp", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ uuid, rsvp, message }),
+            });
+
+            if (res.ok) {
+                window.location.href = `/invite/${uuid}?rsvp=thanks`;
+            } else {
+                alert("Error submitting RSVP.");
+            }
+        } catch (err) {
+            alert("Network error.");
+            console.error(err);
+        }
+    });
 </script>
 </html>

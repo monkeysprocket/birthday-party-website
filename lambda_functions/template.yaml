@@ -38,6 +38,33 @@ Resources:
             RequestParameters:
               - method.request.path.uuid
 
+  UpdateGuestRSVPFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: update_guest_rsvp/
+      Handler: app.lambda_handler
+      Runtime: python3.13
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          DYNAMODB_TABLE: "guests"
+          CORS_ORIGIN: "https://party.matthewjamesquinn.com"
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:UpdateItem
+              Resource: !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/guests
+      Events:
+        PartyAPI:
+          Type: Api
+          Properties:
+            Path: /rsvp
+            Method: put
+            RestApiId: !Ref PartyApi
+
   PartyApi:
     Type: AWS::Serverless::Api
     Properties:

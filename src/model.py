@@ -43,19 +43,6 @@ class Model:
             else:
                 raise
         return new_guest_uuid
-    
-    def update_guest_rsvp(self, uuid: UUID, rsvp: str, message: str) -> None:
-        try:
-            self._guests_table.update_item(
-                Key={"id": str(uuid)},
-                UpdateExpression="SET rsvp_status = :r, rsvp_message = :m",
-                ExpressionAttributeValues={
-                    ":r": rsvp,
-                    ":m": message
-                }
-            )
-        except ClientError as e:
-            raise RuntimeError(e.response['Error']['Message'])
 
 
 if __name__ == "__main__":

@@ -67,57 +67,6 @@ class TestAddGuest:
             model.add_guest(name=self.GUEST_NAME, email=None)
 
 
-class TestUpdateGuestRSVP:
-    GUEST_UUID = uuid.uuid4().hex
-    GUEST_NAME = "david"
-
-    def test_update_yes(self, model):
-        with model._connect() as conn:
-            _add_guest(conn, self.GUEST_UUID, self.GUEST_NAME)
-
-        model.update_guest_rsvp(self.GUEST_UUID, rsvp="yes", message=None)
-
-        with model._connect() as conn:
-            guest = _get_guest_by_uuid(conn, self.GUEST_UUID)
-
-        assert guest["rsvp_status"] == "yes"
-    
-    def test_update_no(self, model):
-        with model._connect() as conn:
-            _add_guest(conn, self.GUEST_UUID, self.GUEST_NAME)
-
-        model.update_guest_rsvp(self.GUEST_UUID, rsvp="no", message=None)
-
-        with model._connect() as conn:
-            guest = _get_guest_by_uuid(conn, self.GUEST_UUID)
-
-        assert guest["rsvp_status"] == "no"
-    
-    def test_update_yes_with_message(self, model):
-        with model._connect() as conn:
-            _add_guest(conn, self.GUEST_UUID, self.GUEST_NAME)
-
-        model.update_guest_rsvp(self.GUEST_UUID, rsvp="yes", message="test message")
-
-        with model._connect() as conn:
-            guest = _get_guest_by_uuid(conn, self.GUEST_UUID)
-
-        assert guest["rsvp_status"] == "yes"
-        assert guest["rsvp_message"] == "test message"
-    
-    def test_update_no_with_message(self, model):
-        with model._connect() as conn:
-            _add_guest(conn, self.GUEST_UUID, self.GUEST_NAME)
-
-        model.update_guest_rsvp(self.GUEST_UUID, rsvp="no", message="testing")
-
-        with model._connect() as conn:
-            guest = _get_guest_by_uuid(conn, self.GUEST_UUID)
-
-        assert guest["rsvp_status"] == "no"
-        assert guest["rsvp_message"] == "testing"
-
-
 def _add_guest(conn: sqlite3.Connection, uuid: str, name: str) -> None:
         cur = conn.cursor()
         cur.execute("INSERT INTO guests (uuid, name) VALUES (?, ?)", (uuid, name))

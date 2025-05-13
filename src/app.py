@@ -21,20 +21,8 @@ def home():
 def invite(uuid: str):
     return render_template(
         'invite.html',
-        uuid=uuid,
         API_URL=os.environ["API_URL"],
     )
-
-
-@app.route("/rsvp", methods=['POST'])
-def rsvp():
-    uuid = request.form.get('uuid')
-    rsvp = request.form.get('rsvp')
-    message = request.form.get('message', '')
-
-    db.update_guest_rsvp(uuid=uuid, rsvp=rsvp, message=message)
-
-    return redirect(url_for('invite', uuid=uuid, rsvp="thanks"))
 
 
 @app.route("/admin", methods=["GET"])

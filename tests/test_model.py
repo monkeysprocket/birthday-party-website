@@ -1,10 +1,11 @@
-import pytest
-import uuid
 import os
 import sqlite3
+import uuid
 
+import pytest
+
+from src.exceptions import IncompleteDataError
 from src.model import Model
-from src.exceptions import NotFoundError, IncompleteDataError
 
 
 @pytest.fixture()
@@ -19,23 +20,6 @@ def model() -> Model:
     
     if os.path.exists(test_db_path):
         os.remove(test_db_path)
-
-
-class TestGetGuestByUUID:
-    GUEST_UUID = uuid.uuid4().hex
-    GUEST_NAME = "alice"
-
-    def test_guest_exists(self, model):
-        with model._connect() as conn:
-            _add_guest(conn, self.GUEST_UUID, self.GUEST_NAME)
-        
-        result = model.get_guest_by_uuid(uuid=self.GUEST_UUID)
-
-        assert result == self.GUEST_NAME
-    
-    def test_guest_does_not_exist_raises(self, model):
-        with pytest.raises(NotFoundError):
-            model.get_guest_by_uuid(uuid=self.GUEST_UUID)
 
 
 class TestGetAllGuests:

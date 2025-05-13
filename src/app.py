@@ -1,10 +1,9 @@
 import os
 
 from dotenv import load_dotenv
-from flask import Flask, render_template, abort, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for
 
 from .admin import requires_auth
-from .exceptions import NotFoundError
 from .model import Model
 from .send_email import send_invite_email
 
@@ -20,15 +19,9 @@ def home():
 
 @app.route("/invite/<uuid>")
 def invite(uuid: str):
-    try:
-        guest_name = db.get_guest_by_uuid(uuid)
-    except NotFoundError:
-        abort(404)
-
     rsvp_thanks = request.args.get('rsvp') == "thanks"
     return render_template(
         'invite.html',
-        name=guest_name,
         uuid=uuid,
         rsvp_thanks=rsvp_thanks,
         API_URL=os.environ["API_URL"],

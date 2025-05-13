@@ -4,7 +4,7 @@ from uuid import UUID, uuid4
 import boto3
 from botocore.exceptions import ClientError
 
-from .exceptions import NotFoundError, IncompleteDataError
+from .exceptions import IncompleteDataError
 
 
 class Model:
@@ -12,16 +12,6 @@ class Model:
         self._dynamodb = boto3.resource("dynamodb", region_name=os.environ['AWS_REGION'])
         self._guests_table = self._dynamodb.Table("guests")
         self._users_table = self._dynamodb.Table("users")
-    
-    def get_guest_by_uuid(self, uuid: str) -> str:
-        try:
-            response = self._guests_table.get_item(Key={"id": uuid})
-            item = response.get("Item")
-            if not item:
-                raise NotFoundError
-            return item["name"]
-        except ClientError as e:
-            raise RuntimeError(e.response['Error']['Message'])
     
     def get_all_guests(self):
         response = self._guests_table.scan(

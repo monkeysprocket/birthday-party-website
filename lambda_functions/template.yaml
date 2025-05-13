@@ -34,3 +34,16 @@ Resources:
           Properties:
             Path: /invite/{uuid}
             Method: get
+            RestApiId: !Ref PartyApi
+            RequestParameters:
+              - method.request.path.uuid
+
+  PartyApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: party-api
+      StageName: Prod
+      Cors:
+        AllowMethods: "'GET'"
+        AllowHeaders: "'Content-Type'"
+        AllowOrigin: "'https://party.matthewjamesquinn.com'"

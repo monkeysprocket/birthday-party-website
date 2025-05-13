@@ -1,13 +1,17 @@
 import json
 import os
-from typing import TypedDict, Optional, Protocol, Any
+from typing import TypedDict, Protocol, Any
 
 import boto3
 from botocore.exceptions import ClientError
 
 
+class PathParameters(TypedDict):
+    uuid: str | None
+
+
 class Event(TypedDict):
-    uuid: Optional[str]
+    pathParameters: PathParameters | None
 
 
 class TableLike(Protocol):
@@ -19,7 +23,7 @@ dynamodb_table = dynamodb.Table(os.environ["DYNAMODB_TABLE"])
 
 
 def lambda_handler(event: Event, _) -> dict[str, int | str]:
-    uuid = event.get("uuid")
+    uuid = event.get("pathParameters", {}).get("uuid")
     if not uuid:
         return generate_response(body={"error": "Missing 'uuid' in request"}, status_code=400)
 

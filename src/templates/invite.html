@@ -10,7 +10,7 @@
         <div class="container">
             <header class="mb-5">
                 <h1 id="greeting" class="title is-3 has-text-primary"></h1>
-                <p id="rsvp-status" class="notification is-success-light" style="display: none"></p>
+                <p id="rsvp-status" class="notification is-success-light is-hidden"></p>
             </header>
 
             <main>
@@ -106,7 +106,9 @@
             const data = await response.json();
             document.getElementById("greeting").textContent = `Hi ${data.name}! You're Invited to a Birthday Party!`;
             if (rsvpStatus === "thanks") {
-               document.getElementById("rsvp-status").textContent = `Thanks ${data.name}, we've saved your RSVP`;
+               const rsvpElement = document.getElementById("rsvp-status");
+               rsvpElement.textContent = `Thanks ${data.name}, we've saved your RSVP`;
+               rsvpElement.classList.remove("is-hidden");
             }
         } catch (err) {
             document.getElementById("greeting").textContent = "You're Invited to a Birthday Party!";

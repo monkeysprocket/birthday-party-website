@@ -1,0 +1,17 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.12
+    commands:
+      - pip install aws-sam-cli
+  build:
+    commands:
+      - export API_URL=$(aws ssm get-parameter --name "/partyApp/sam/api-url" --with-decryption --query 'Parameter.Value' --output text)
+      - sed -i "s|__API_URL__|$API_URL|g" src/templates/invite.html
+      - cd lambda_functions
+      - sam build
+  post_build:
+    commands:
+      - sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --stack-name my-lambda-stack --capabilities CAPABILITY_IAM

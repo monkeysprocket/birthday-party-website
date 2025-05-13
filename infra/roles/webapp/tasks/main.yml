@@ -19,6 +19,12 @@
     group: webapp
     mode: '0644'
 
+- name: Inject API url to HTML files
+  ansible.builtin.template:
+    src: /website/invite.html.j2
+    dest: /src/templates/invite.html
+    mode: '0644'
+
 - name: Create virtual environment
   command: python3 -m venv {{ project_dir }}/venv
   args:

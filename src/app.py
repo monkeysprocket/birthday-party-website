@@ -21,6 +21,7 @@ def home():
 def invite(uuid: str):
     return render_template(
         'invite.html',
+        uuid=uuid,
         API_URL=os.environ["API_URL"],
     )
 

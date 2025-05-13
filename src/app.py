@@ -36,7 +36,7 @@ def rsvp():
 
     db.update_guest_rsvp(uuid=uuid, rsvp=rsvp, message=message)
 
-    return redirect(url_for('invite', uuid=uuid, rsvp="thanks", API_URL=os.environ["API_URL"]))
+    return redirect(url_for('invite', uuid=uuid, rsvp="thanks"))
 
 
 @app.route("/admin", methods=["GET"])

@@ -101,7 +101,7 @@
 
     async function loadGuestName() {
         try {
-            const response = await fetch("{{ API_URL }}/invite/${uuid}");
+            const response = await fetch(`{{ API_URL }}/invite/${uuid}`);
             if (!response.ok) throw new Error("Guest not found");
             const data = await response.json();
             document.getElementById("greeting").textContent = "Hi ${data.name}! You're Invited to a Birthday Party!";

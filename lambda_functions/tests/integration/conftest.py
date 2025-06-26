@@ -1,27 +1,30 @@
+import os
 import uuid
-from unittest.mock import patch
+from pathlib import Path
 
+import boto3
+import dotenv
 import pytest
-from botocore.exceptions import ClientError
-
-from lambda_functions.get_guest_name_from_invite_uuid.app import dynamodb_table
 
 
-@pytest.fixture(scope="module")
-def guest():
+@pytest.fixture(scope="session")
+def environment():
+    env_path = Path(__file__).parent.parent.parent / ".env"
+    dotenv.load_dotenv(env_path)
+
+@pytest.fixture(scope="session")
+def database(environment):
+    dynamodb = boto3.resource('dynamodb')
+    dynamodb_table = dynamodb.Table(os.environ["DYNAMODB_TABLE"])
+    return dynamodb_table
+
+
+@pytest.fixture(scope="session")
+def guest(database):
     test_guest = {
         "id": uuid.uuid4().hex,
         "name": "alice",
     }
-    dynamodb_table.put_item(Item=test_guest)
+    database.put_item(Item=test_guest)
     yield test_guest
-    dynamodb_table.delete_item(Key={"id": test_guest["id"]})
-
-@pytest.fixture()
-def client_error():
-    with patch.object(dynamodb_table, "get_item") as mock_get_item:
-        mock_get_item.side_effect = ClientError(
-            error_response={"Error": {"Message": "Simulated failure"}},
-            operation_name="GetItem"
-        )
-        yield
+    database.delete_item(Key={"id": test_guest["id"]})

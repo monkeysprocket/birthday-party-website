@@ -3,7 +3,7 @@ from typing import Any
 
 from botocore.exceptions import ClientError
 
-from lambda_functions.get_guest_name_from_invite_uuid.app import get_guest_name_from_invite_uuid
+from lambda_functions.invite.invite import get_guest_name_from_invite_uuid
 
 GUEST_UUID = uuid.uuid4().hex
 GUEST_NAME = "alice"

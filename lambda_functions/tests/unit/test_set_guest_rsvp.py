@@ -3,7 +3,7 @@ from typing import Any
 
 from botocore.exceptions import ClientError
 
-from lambda_functions.update_guest_rsvp.app import update_guest_rsvp
+from lambda_functions.update_guest_rsvp.update_guest_rsvp import set_guest_rsvp
 
 GUEST_UUID = uuid.uuid4().hex
 GUEST_NAME = "alice"
@@ -37,6 +37,6 @@ class TestUpdateGuestRSVP:
     def test_guest_exists(self):
         table = MockTable(guest_uuid=GUEST_UUID)
 
-        update_guest_rsvp(GUEST_UUID, "yes", "message", table)
+        set_guest_rsvp(GUEST_UUID, "yes", "message", table)
 
         assert table.update_successful is True

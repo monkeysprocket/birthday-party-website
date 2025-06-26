@@ -10,17 +10,37 @@ Globals:
     Timeout: 3
 
 Resources:
-  GetGuestNameFromInviteUUIDFunction:
+  IndexFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: get_guest_name_from_invite_uuid/
-      Handler: app.lambda_handler
+      CodeUri: index/
+      Handler: index.lambda_handler
+      Runtime: python3.13
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          CORS_ORIGIN: "https://party.matthewjamesquinn.com"
+      Events:
+        PartyAPI:
+          Type: Api
+          Properties:
+            Path: /
+            Method: get
+            RestApiId: !Ref PartyApi
+
+  InviteFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: invite/
+      Handler: invite.lambda_handler
       Runtime: python3.13
       Architectures:
         - x86_64
       Environment:
         Variables:
           DYNAMODB_TABLE: "guests"
+          CORS_ORIGIN: "https://party.matthewjamesquinn.com"
       Policies:
         - Version: "2012-10-17"
           Statement:
@@ -62,7 +82,7 @@ Resources:
           Type: Api
           Properties:
             Path: /rsvp
-            Method: put
+            Method: post
             RestApiId: !Ref PartyApi
 
   PartyApi:

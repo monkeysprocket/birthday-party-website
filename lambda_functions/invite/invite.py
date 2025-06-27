@@ -7,6 +7,15 @@ import boto3
 from botocore.exceptions import ClientError
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
+dynamodb = boto3.resource('dynamodb')
+users_table = dynamodb.Table(os.environ["DYNAMODB_GUESTS_TABLE"])
+
+env = Environment(
+    loader=FileSystemLoader(Path(__file__).parent / "templates"),
+    autoescape=select_autoescape(),
+)
+template = env.get_template("invite.html")
+
 
 class PathParameters(TypedDict):
     uuid: str | None
@@ -23,16 +32,6 @@ class Event(TypedDict):
 
 class TableLike(Protocol):
     def get_item(self, Key: dict[str, Any]) -> dict[str, Any]: ...
-
-
-dynamodb = boto3.resource('dynamodb')
-users_table = dynamodb.Table(os.environ["DYNAMODB_GUESTS_TABLE"])
-
-env = Environment(
-    loader=FileSystemLoader(Path(__file__).parent / "templates"),
-    autoescape=select_autoescape(),
-)
-template = env.get_template("invite.html")
 
 
 def lambda_handler(event: Event, _) -> dict[str, int | str]:

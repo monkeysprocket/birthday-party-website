@@ -4,12 +4,12 @@ from uuid import uuid4
 import pytest
 from botocore.exceptions import ClientError
 
-from lambda_functions.invite.invite import lambda_handler, dynamodb_table
+from lambda_functions.invite.invite import lambda_handler, users_table
 
 
 @pytest.fixture()
 def client_error():
-    with patch.object(dynamodb_table, "get_item") as mock_get_item:
+    with patch.object(users_table, "get_item") as mock_get_item:
         mock_get_item.side_effect = ClientError(
             error_response={"Error": {"Message": "Simulated failure"}},
             operation_name="GetItem"

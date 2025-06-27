@@ -30,7 +30,7 @@ class ParsingError(Exception):
 
 
 dynamodb = boto3.resource('dynamodb')
-dynamodb_table = dynamodb.Table(os.environ["DYNAMODB_TABLE"])
+users_table = dynamodb.Table(os.environ["DYNAMODB_GUESTS_TABLE"])
 
 def lambda_handler(event: Event, _) -> dict[str, int | str]:
     try:
@@ -41,7 +41,7 @@ def lambda_handler(event: Event, _) -> dict[str, int | str]:
         )
 
     try:
-        set_guest_rsvp(uuid, rsvp, message, dynamodb_table)
+        set_guest_rsvp(uuid, rsvp, message, users_table)
     except ClientError as e:
         if "ConditionalCheckFailedException" in str(e):
             return generate_response(body={"error": "UpdateItem failed: guest uuid not found"}, status_code=400)

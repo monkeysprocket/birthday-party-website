@@ -39,7 +39,7 @@ Resources:
         - x86_64
       Environment:
         Variables:
-          DYNAMODB_TABLE: "guests"
+          DYNAMODB_GUESTS_TABLE: "guests"
           CORS_ORIGIN: "https://party.matthewjamesquinn.com"
       Policies:
         - Version: "2012-10-17"
@@ -68,7 +68,7 @@ Resources:
         - x86_64
       Environment:
         Variables:
-          DYNAMODB_TABLE: "guests"
+          DYNAMODB_GUESTS_TABLE: "guests"
           CORS_ORIGIN: "https://party.matthewjamesquinn.com"
       Policies:
         - Version: "2012-10-17"

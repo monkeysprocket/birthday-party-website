@@ -4,12 +4,12 @@ from uuid import uuid4
 import pytest
 from botocore.exceptions import ClientError
 
-from lambda_functions.update_guest_rsvp.update_guest_rsvp import lambda_handler, dynamodb_table
+from lambda_functions.update_guest_rsvp.update_guest_rsvp import lambda_handler, users_table
 
 
 @pytest.fixture()
 def client_error():
-    with patch.object(dynamodb_table, "update_item") as mock_get_item:
+    with patch.object(users_table, "update_item") as mock_get_item:
         mock_get_item.side_effect = ClientError(
             error_response={"Error": {"Message": "Simulated failure"}},
             operation_name="GetItem"
@@ -18,13 +18,13 @@ def client_error():
 
 
 class TestLambdaHandler:
-    def test_successful_update(self, guest, database):
+    def test_successful_update(self, guest, guests_table):
         unique_message = uuid4().hex
         event = {"body": f"uuid={guest["id"]}&rsvp=yes&message={unique_message}"}
 
         lambda_handler(event, None)
 
-        item = database.get_item(Key={"id": guest["id"]}).get("Item")
+        item = guests_table.get_item(Key={"id": guest["id"]}).get("Item")
 
         assert item["rsvp_message"] == unique_message
 

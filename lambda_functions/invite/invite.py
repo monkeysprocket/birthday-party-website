@@ -26,7 +26,7 @@ class TableLike(Protocol):
 
 
 dynamodb = boto3.resource('dynamodb')
-dynamodb_table = dynamodb.Table(os.environ["DYNAMODB_TABLE"])
+users_table = dynamodb.Table(os.environ["DYNAMODB_GUESTS_TABLE"])
 
 env = Environment(
     loader=FileSystemLoader(Path(__file__).parent / "templates"),
@@ -41,7 +41,7 @@ def lambda_handler(event: Event, _) -> dict[str, int | str]:
         return generate_json_response(body={"error": "Missing 'uuid' in request"}, status_code=400)
 
     try:
-        guest_name = get_guest_name_from_invite_uuid(uuid, dynamodb_table)
+        guest_name = get_guest_name_from_invite_uuid(uuid, users_table)
     except ClientError as e:
         return generate_json_response(body={"error": e.response['Error']['Message']}, status_code=500)
 

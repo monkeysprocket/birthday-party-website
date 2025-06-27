@@ -13,18 +13,18 @@ def environment():
     dotenv.load_dotenv(env_path)
 
 @pytest.fixture(scope="session")
-def database(environment):
+def guests_table(environment):
     dynamodb = boto3.resource('dynamodb')
-    dynamodb_table = dynamodb.Table(os.environ["DYNAMODB_TABLE"])
+    dynamodb_table = dynamodb.Table(os.environ["DYNAMODB_GUESTS_TABLE"])
     return dynamodb_table
 
 
 @pytest.fixture(scope="session")
-def guest(database):
+def guest(guests_table):
     test_guest = {
         "id": uuid.uuid4().hex,
         "name": "alice",
     }
-    database.put_item(Item=test_guest)
+    guests_table.put_item(Item=test_guest)
     yield test_guest
-    database.delete_item(Key={"id": test_guest["id"]})
+    guests_table.delete_item(Key={"id": test_guest["id"]})

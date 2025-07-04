@@ -1,3 +1,4 @@
+import base64
 import json
 import os
 import urllib.parse
@@ -9,6 +10,7 @@ from botocore.exceptions import ClientError
 
 class Event(TypedDict):
     body: str | None
+    isBase64Encoded: bool
 
 
 class TableLike(Protocol):
@@ -34,7 +36,7 @@ users_table = dynamodb.Table(os.environ["DYNAMODB_GUESTS_TABLE"])
 
 def lambda_handler(event: Event, _) -> dict[str, int | str]:
     try:
-        uuid, rsvp, message = parse_form_body(raw_body=event.get("body"))
+        uuid, rsvp, message = parse_form_body(raw_body=get_body(event))
     except ParsingError as e:
         return generate_response(
             body={"error": str(e)}, status_code=400
@@ -49,6 +51,13 @@ def lambda_handler(event: Event, _) -> dict[str, int | str]:
             return generate_response(body={"error": e.response['Error']['Message']}, status_code=500)
     else:
         return redirect(to=f"/invite/{uuid}?rsvp_thanks=true")
+
+
+def get_body(event: Event) -> str:
+    if event.get("isBase64Encoded"):
+        return base64.b64decode(event.get("body")).decode("utf-8")
+    else:
+        return event.get("body")
 
 
 def parse_form_body(raw_body: str) -> tuple[str, str, str | None]:

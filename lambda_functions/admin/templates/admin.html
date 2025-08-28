@@ -18,7 +18,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for name, email, status, message in guests %}
+                {% for name, email, status, rsvp_message in guests %}
                 <tr>
                     <td>{{ name }}</td>
                     <td>{{ email }}</td>
@@ -31,7 +31,7 @@
                             <span class="tag is-light">No response</span>
                         {% endif %}
                     </td>
-                    <td>{{ message or "—" }}</td>
+                    <td>{{ rsvp_message or "—" }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -40,8 +40,8 @@
 
     <div class="section">
         <h2 class="title is-4">Add a New Guest</h2>
-        {% if message %}
-        <p class="notification is-success">{{ message }}</p>
+        {% if success %}
+        <p class="notification is-success">{{ success }}</p>
         {% elif error %}
         <p class="notification is-danger">{{ error }}</p>
         {% endif %}

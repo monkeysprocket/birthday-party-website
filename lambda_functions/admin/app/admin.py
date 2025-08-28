@@ -28,6 +28,7 @@ class EventHeaders(TypedDict):
 
 class Event(TypedDict):
     headers: EventHeaders
+    body: str  # contains optional success/error message from add_guest in JSON
 
 
 def lambda_handler(event: Event, _) -> dict[str, Any]:
@@ -53,8 +54,10 @@ def lambda_handler(event: Event, _) -> dict[str, Any]:
     except ClientError as e:
         return generate_json_response(body={"error": f"Error while accessing guests table: {e.response['Error']['Message']}"}, status_code=500)
 
+    body = json.loads(event.get("body", "{}"))
+
     return generate_html_response(
-        body=template.render(guests=guests),
+        body=template.render(guests=guests, success=body.get("success"), error=body.get("error")),
         status_code=200,
     )
 

@@ -1,27 +1,50 @@
+import os
 import uuid
-from unittest.mock import patch
+from pathlib import Path
 
+import boto3
+import dotenv
 import pytest
-from botocore.exceptions import ClientError
-
-from lambda_functions.get_guest_name_from_invite_uuid.app import dynamodb_table
+from werkzeug.security import generate_password_hash
 
 
-@pytest.fixture(scope="module")
-def guest():
+@pytest.fixture(scope="session")
+def environment():
+    env_path = Path(__file__).parent.parent.parent / ".env"
+    dotenv.load_dotenv(env_path)
+
+@pytest.fixture(scope="session")
+def guests_table(environment):
+    dynamodb = boto3.resource('dynamodb')
+    dynamodb_table = dynamodb.Table(os.environ["DYNAMODB_GUESTS_TABLE"])
+    return dynamodb_table
+
+
+@pytest.fixture(scope="session")
+def guest(guests_table):
     test_guest = {
         "id": uuid.uuid4().hex,
         "name": "alice",
     }
-    dynamodb_table.put_item(Item=test_guest)
+    guests_table.put_item(Item=test_guest)
     yield test_guest
-    dynamodb_table.delete_item(Key={"id": test_guest["id"]})
+    guests_table.delete_item(Key={"id": test_guest["id"]})
 
-@pytest.fixture()
-def client_error():
-    with patch.object(dynamodb_table, "get_item") as mock_get_item:
-        mock_get_item.side_effect = ClientError(
-            error_response={"Error": {"Message": "Simulated failure"}},
-            operation_name="GetItem"
-        )
-        yield
+
+@pytest.fixture(scope="session")
+def users_table(environment):
+    dynamodb = boto3.resource('dynamodb')
+    dynamodb_table = dynamodb.Table(os.environ["DYNAMODB_USERS_TABLE"])
+    return dynamodb_table
+
+
+@pytest.fixture(scope="session")
+def user(users_table):
+    test_user = {
+        "username": "test_user",
+        "password_hash": generate_password_hash("supersecret"),
+    }
+    users_table.put_item(Item=test_user)
+    test_user["password"] = "supersecret"
+    yield test_user
+    users_table.delete_item(Key={"username": test_user["username"]})

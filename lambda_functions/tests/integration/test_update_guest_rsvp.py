@@ -1,16 +1,15 @@
-import json
-import uuid
 from unittest.mock import patch
+from uuid import uuid4
 
 import pytest
 from botocore.exceptions import ClientError
 
-from lambda_functions.update_guest_rsvp.app import lambda_handler, dynamodb_table
+from lambda_functions.update_guest_rsvp.update_guest_rsvp import lambda_handler, users_table
 
 
 @pytest.fixture()
 def client_error():
-    with patch.object(dynamodb_table, "update_item") as mock_get_item:
+    with patch.object(users_table, "update_item") as mock_get_item:
         mock_get_item.side_effect = ClientError(
             error_response={"Error": {"Message": "Simulated failure"}},
             operation_name="GetItem"
@@ -19,58 +18,52 @@ def client_error():
 
 
 class TestLambdaHandler:
-    def test_guest_exists(self, guest):
-        event = {"body": json.dumps({"uuid": guest["id"], "rsvp": "yes", "message": ""})}
-        print(event)
+    def test_successful_update(self, guest, guests_table):
+        unique_message = uuid4().hex
+        event = {"body": f"uuid={guest["id"]}&rsvp=yes&message={unique_message}"}
+
+        lambda_handler(event, None)
+
+        item = guests_table.get_item(Key={"id": guest["id"]}).get("Item")
+
+        assert item["rsvp_message"] == unique_message
+
+    def test_successful_update_redirects(self, guest):
+        event = {"body": f"uuid={guest["id"]}&rsvp=yes&message="}
 
         result = lambda_handler(event, None)
 
-        assert result["statusCode"] == 200
-        assert "OK" in result["body"]
+        assert result["statusCode"] == 301
 
-    def test_guest_does_not_exist_returns_500(self):
-        event = {"body": json.dumps({"uuid": uuid.uuid4().hex, "rsvp": "yes", "message": ""})}
+    def test_form_parsing_error_returns_400(self, guest):
+        event = {"body": f"uuid={guest["id"]}&message="}
 
         result = lambda_handler(event, None)
 
-        assert result["statusCode"] == 500
+        assert result["statusCode"] == 400
+        assert "Failed to parse application/x-www-form-urlencoded data" in result["body"]
+
+    def test_guest_does_not_exist_returns_400(self):
+        event = {"body": f"uuid={uuid4().hex}&rsvp=yes&message="}
+
+        result = lambda_handler(event, None)
+
+        assert result["statusCode"] == 400
         assert "UpdateItem failed: guest uuid not found" in result["body"]
 
     def test_client_error_returns_500(self, guest, client_error):
-        event = {"body": json.dumps({"uuid": guest["id"], "rsvp": "yes", "message": ""})}
+        event = {"body": f"uuid={guest["id"]}&rsvp=yes&message="}
 
         result = lambda_handler(event, None)
 
         assert result["statusCode"] == 500
         assert "Simulated failure" in result["body"]
 
-    def test_input_validation_uuid_missing_returns_400(self):
-        event = {"body": json.dumps({"rsvp": "yes", "message": ""})}
+
+    def test_parsing_error_returns_400(self):
+        event = {"body": "dfsdfs"}  # will raise a ParsingError
 
         result = lambda_handler(event, None)
 
         assert result["statusCode"] == 400
-        assert "Missing 'uuid'" in result["body"]
-
-    def test_input_validation_rsvp_missing_returns_400(self):
-        event = {"body": json.dumps({"uuid": uuid.uuid4().hex, "message": ""})}
-
-        result = lambda_handler(event, None)
-
-        assert result["statusCode"] == 400
-        assert "Missing 'rsvp'" in result["body"]
-
-    def test_input_validation_message_missing_returns_200(self, guest):
-        event = {"body": json.dumps({"uuid": guest["id"], "rsvp": "yes"})}
-
-        result = lambda_handler(event, None)
-
-        assert result["statusCode"] == 200
-
-    def test_input_validation_malformed_json_returns_400(self):
-        event = {"body": "{"}
-
-        result = lambda_handler(event, None)
-
-        assert result["statusCode"] == 400
-        assert "Invalid JSON in request body" in result["body"]
+        assert "Failed to parse application/x-www-form-urlencoded data" in result["body"]

@@ -10,17 +10,37 @@ Globals:
     Timeout: 3
 
 Resources:
-  GetGuestNameFromInviteUUIDFunction:
+  IndexFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: get_guest_name_from_invite_uuid/
-      Handler: app.lambda_handler
-      Runtime: python3.13
+      CodeUri: index/
+      Handler: index.lambda_handler
+      Runtime: python3.12
       Architectures:
         - x86_64
       Environment:
         Variables:
-          DYNAMODB_TABLE: "guests"
+          CORS_ORIGIN: "https://party.matthewjamesquinn.com"
+      Events:
+        PartyAPI:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PartyApi
+            Path: /
+            Method: get
+
+  InviteFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: invite/
+      Handler: invite.lambda_handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          DYNAMODB_GUESTS_TABLE: "guests"
+          CORS_ORIGIN: "https://party.matthewjamesquinn.com"
       Policies:
         - Version: "2012-10-17"
           Statement:
@@ -30,25 +50,57 @@ Resources:
               Resource: !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/guests
       Events:
         PartyAPI:
-          Type: Api
+          Type: HttpApi
           Properties:
+            ApiId: !Ref PartyApi
             Path: /invite/{uuid}
             Method: get
-            RestApiId: !Ref PartyApi
-            RequestParameters:
-              - method.request.path.uuid
+
+  AdminFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: admin/
+      Handler: app.admin.lambda_handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          DYNAMODB_USERS_TABLE: "users"
+          DYNAMODB_GUESTS_TABLE: "guests"
+          CORS_ORIGIN: "https://party.matthewjamesquinn.com"
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+              Resource:
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/users
+            - Effect: Allow
+              Action:
+                - dynamodb:Scan
+              Resource:
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/guests
+      Events:
+        PartyAPI:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PartyApi
+            Path: /admin
+            Method: get
 
   UpdateGuestRSVPFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: update_guest_rsvp/
-      Handler: app.lambda_handler
-      Runtime: python3.13
+      Handler: update_guest_rsvp.lambda_handler
+      Runtime: python3.12
       Architectures:
         - x86_64
       Environment:
         Variables:
-          DYNAMODB_TABLE: "guests"
+          DYNAMODB_GUESTS_TABLE: "guests"
           CORS_ORIGIN: "https://party.matthewjamesquinn.com"
       Policies:
         - Version: "2012-10-17"
@@ -59,18 +111,62 @@ Resources:
               Resource: !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/guests
       Events:
         PartyAPI:
-          Type: Api
+          Type: HttpApi
           Properties:
+            ApiId: !Ref PartyApi
             Path: /rsvp
-            Method: put
-            RestApiId: !Ref PartyApi
+            Method: post
+
+  AddGuestFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: add_guest/
+      Handler: app.main.lambda_handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          DYNAMODB_USERS_TABLE: "users"
+          DYNAMODB_GUESTS_TABLE: "guests"
+          CORS_ORIGIN: "https://party.matthewjamesquinn.com"
+          EMAIL_FROM_NAME: "Matt Quinn"
+          EMAIL_FROM: "invite@party.matthewjamesquinn.com"
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+              Resource:
+                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/users
+            - Effect: Allow
+              Action:
+                - dynamodb:PutItem
+              Resource: !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/guests
+            - Effect: Allow
+              Action:
+                - ses:SendEmail
+              Resource:
+                - !Sub arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/matthewjamesquinn.com
+                - !Sub arn:aws:ses:${AWS::Region}:${AWS::AccountId}:configuration-set/my-first-configuration-set
+      Events:
+        PartyAPI:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PartyApi
+            Path: /admin/add_guest
+            Method: post
 
   PartyApi:
-    Type: AWS::Serverless::Api
+    Type: AWS::Serverless::HttpApi
     Properties:
       Name: party-api
-      StageName: Prod
-      Cors:
-        AllowMethods: "'GET'"
-        AllowHeaders: "'Content-Type'"
-        AllowOrigin: "'https://party.matthewjamesquinn.com'"
+      CorsConfiguration:
+        AllowMethods:
+          - GET
+          - POST
+        AllowHeaders:
+          - Content-Type
+        AllowOrigins:
+          - "https://party.matthewjamesquinn.com"
